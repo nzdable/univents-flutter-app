@@ -1,11 +1,9 @@
-import 'dart:io' show Platform;
-import 'dart:html' as html;
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'Web/Login.dart';
 
-void main() async {
+void main(dynamic html) async {
   WidgetsFlutterBinding.ensureInitialized();
 
   await Supabase.initialize(
