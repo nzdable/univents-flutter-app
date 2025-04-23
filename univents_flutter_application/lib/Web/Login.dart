@@ -1,8 +1,6 @@
-import 'dart:io' show Platform;
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:google_sign_in/google_sign_in.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import '../Controllers/Login_Controller.dart';
 
 class Login extends StatefulWidget {
   const Login({super.key});
@@ -11,71 +9,97 @@ class Login extends StatefulWidget {
   State<Login> createState() => _LoginState();
 }
 
-final SupabaseClient supabase = Supabase.instance.client;
-
 class _LoginState extends State<Login> {
   String? _userID;
+  String? _email;
+  String? _statusMessage;
 
   @override
   void initState() {
     super.initState();
 
+    final session = supabase.auth.currentSession;
+    if (session != null) {
+      _verifySession(session);
+    }
+
     supabase.auth.onAuthStateChange.listen((data) {
-      setState(() {
-        _userID = data.session?.user?.id;
-      });
+      final event = data.event;
+      final session = data.session;
+
+      if (event == AuthChangeEvent.signedIn && session != null) {
+        _verifySession(session);
+      }
     });
   }
 
-  Future<void> _nativeGoogleSignIn() async {
-    const webClientId = '451923571225-16d5gkkhbib2bvov02p7fgv40mi2jiff.apps.googleusercontent.com';
+  void _verifySession(Session session) {
+    setState(() {
+      _userID = session.user.id;
+      _email = session.user.email;
+      _statusMessage = "Signed in!";
+    });
+  }
 
-    final GoogleSignIn googleSignIn = GoogleSignIn(
-      serverClientId: webClientId,
-    );
+  Future<void> _handleLogin() async {
+    final result = await handleLogin();
 
-    final googleUser = await googleSignIn.signIn();
-    final googleAuth = await googleUser?.authentication;
-
-    final accessToken = googleAuth?.accessToken;
-    final idToken = googleAuth?.idToken;
-
-    if (accessToken == null) {
-      throw 'No Access Token found.';
+    if (result != null) {
+      setState(() {
+        _userID = result['userID'];
+        _email = result['email'];
+        _statusMessage = "Signed in!";
+      });
+    } else {
+      setState(() {
+        _userID = null;
+        _email = null;
+        _statusMessage = "Sign-in failed.";
+      });
     }
-    if (idToken == null) {
-      throw 'No ID Token found.';
-    }
+  }
 
-    await supabase.auth.signInWithIdToken(
-      provider: OAuthProvider.google,
-      idToken: idToken,
-      accessToken: accessToken,
-    );
+  void _clearSession() {
+    setState(() {
+      _userID = null;
+      _email = null;
+      _statusMessage = null;
+    });
   }
 
   @override
   Widget build(BuildContext context) {
+    final bool isLoggedIn = _userID != null;
+
     return Scaffold(
       body: Center(
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Text(_userID ?? 'Not signed in'),
+            Text(
+              isLoggedIn ? 'Signed in as $_email' : 'Not signed in',
+              style: const TextStyle(fontSize: 18),
+            ),
+            if (_statusMessage != null)
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 8.0),
+                child: Text(
+                  _statusMessage!,
+                  style: TextStyle(
+                    fontSize: 16,
+                    color: _statusMessage!.contains('failed') ||
+                            _statusMessage!.contains("Error")
+                        ? Colors.red
+                        : Colors.green,
+                  ),
+                ),
+              ),
+            const SizedBox(height: 20),
             ElevatedButton(
-              onPressed: () async {
-                if (!kIsWeb && Platform.isAndroid) {
-                  await _nativeGoogleSignIn();
-                } else {
-                  await supabase.auth.signInWithOAuth(
-                    OAuthProvider.google,
-                    redirectTo: kIsWeb
-                        ? 'http://localhost:3000'
-                        : null,
-                  );
-                }
-              },
-              child: const Text('Sign in with Google'),
+              onPressed: isLoggedIn
+                  ? () => handleSignOut(_clearSession)
+                  : _handleLogin,
+              child: Text(isLoggedIn ? 'Sign Out' : 'Sign in with Google'),
             ),
           ],
         ),
