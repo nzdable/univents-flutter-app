@@ -1,3 +1,5 @@
+// Removed import for GradleException as it is not recognized
+
 pluginManagement {
     try {
         def flutterSdkPath = {
@@ -16,7 +18,7 @@ pluginManagement {
             gradlePluginPortal()
         }
     } catch (Exception e) {
-        throw new GradleException("Error configuring Flutter SDK: ${e.message}", e)
+        throw new RuntimeException("Error configuring Flutter SDK: ${e.message}", e)
     }
 }
 

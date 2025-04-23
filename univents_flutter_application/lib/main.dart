@@ -2,6 +2,8 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'Web/Login.dart';
+import 'dashboard.dart';
+
 
 void main(dynamic html) async {
   WidgetsFlutterBinding.ensureInitialized();
