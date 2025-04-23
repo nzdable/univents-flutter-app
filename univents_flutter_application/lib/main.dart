@@ -1,3 +1,4 @@
+import 'dart:io' show Platform;
 import 'dart:html' as html;
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -5,7 +6,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'Web/Login.dart';
 import 'Web/secret.dart';
 
-Future<void> main() async {
+void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   final supabaseUrl = secret.SUPABASE_URL!;
