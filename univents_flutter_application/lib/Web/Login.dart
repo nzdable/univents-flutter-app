@@ -29,7 +29,7 @@ class _LoginState extends State<Login> {
       });
     });
   }
-Future<void> signInWithGoogle() async {
+  Future<void> signInWithGoogle() async {
   try {
     const webClientId = '31890867632-1thbar05us92e7ptrouma5ehi9atovh9.apps.googleusercontent.com';
     const iosClientId = '31890867632-kl68jmhunrc65o5gh6aj6nmosjdkji4q.apps.googleusercontent.com';
@@ -39,11 +39,30 @@ Future<void> signInWithGoogle() async {
       serverClientId: webClientId,
     );
 
-    await googleSignIn.signOut();
+    await googleSignIn.signOut(); // Ensure clean sign-in
 
     final googleUser = await googleSignIn.signIn();
     if (googleUser == null) {
       throw Exception('Sign-in aborted by user');
+    }
+
+    final email = googleUser.email;
+    if (!email.endsWith('@addu.edu.ph')) {
+      await googleSignIn.signOut(); // Sign out if email is invalid
+      showDialog(
+        context: context,
+        builder: (_) => AlertDialog(
+          title: const Text('Unauthorized Email'),
+          content: const Text('Please sign in with your @addu.edu.ph email address.'),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text('OK'),
+            ),
+          ],
+        ),
+      );
+      return;
     }
 
     final googleAuth = await googleUser.authentication;
@@ -73,9 +92,10 @@ Future<void> signInWithGoogle() async {
 
   } catch (e) {
     debugPrint('Google sign-in failed: $e');
-    rethrow;
+    // Optionally show an error dialog
   }
 }
+
 
 @override
 Widget build(BuildContext context) {
