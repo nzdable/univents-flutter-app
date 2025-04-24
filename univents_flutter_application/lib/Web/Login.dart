@@ -29,7 +29,7 @@ class _LoginState extends State<Login> {
       });
     });
   }
-  Future<void> signInWithGoogle() async {
+Future<void> signInWithGoogle() async {
   try {
     const webClientId = '31890867632-1thbar05us92e7ptrouma5ehi9atovh9.apps.googleusercontent.com';
     const iosClientId = '31890867632-kl68jmhunrc65o5gh6aj6nmosjdkji4q.apps.googleusercontent.com';
@@ -39,7 +39,7 @@ class _LoginState extends State<Login> {
       serverClientId: webClientId,
     );
 
-    await googleSignIn.signOut(); // Ensure clean sign-in
+    await googleSignIn.signOut();
 
     final googleUser = await googleSignIn.signIn();
     if (googleUser == null) {
@@ -48,20 +48,20 @@ class _LoginState extends State<Login> {
 
     final email = googleUser.email;
     if (!email.endsWith('@addu.edu.ph')) {
-      await googleSignIn.signOut(); // Sign out if email is invalid
-      showDialog(
-        context: context,
-        builder: (_) => AlertDialog(
-          title: const Text('Unauthorized Email'),
-          content: const Text('Please sign in with your @addu.edu.ph email address.'),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(),
-              child: const Text('OK'),
-            ),
-          ],
-        ),
-      );
+      // Block non-addu emails
+      await supabase.auth.signOut();
+      if (context.mounted) {
+        showDialog(
+          context: context,
+          builder: (_) => AlertDialog(
+            title: const Text('Access Denied'),
+            content: const Text('Only @addu.edu.ph emails are allowed.'),
+            actions: [
+              TextButton(onPressed: () => Navigator.pop(context), child: const Text('OK')),
+            ],
+          ),
+        );
+      }
       return;
     }
 
@@ -73,26 +73,49 @@ class _LoginState extends State<Login> {
       throw Exception('Missing Google Auth Token(s)');
     }
 
-    await supabase.auth.signInWithIdToken(
+    final authRes = await supabase.auth.signInWithIdToken(
       provider: OAuthProvider.google,
       idToken: idToken,
       accessToken: accessToken,
     );
+
+    final userId = authRes.session?.user.id;
+    if (userId == null) throw Exception("No user ID returned");
+
+    // Check if profile exists
+    final profileCheck = await supabase
+        .from('profiles')
+        .select('role')
+        .eq('id', userId)
+        .maybeSingle();
+
+    if (profileCheck == null || profileCheck.isEmpty) {
+      // Insert profile with student role
+      await supabase.from('profiles').insert({
+        'id': userId,
+        'email': email,
+        'role': 'student',
+      });
+    } else if (profileCheck['role'] == null) {
+      // Update role if missing
+      await supabase.from('profiles').update({
+        'role': 'student',
+      }).eq('id', userId);
+    }
 
     if (context.mounted) {
       Navigator.of(context).pushReplacement(
         MaterialPageRoute(
           builder: (_) => Dashboard(
             name: googleUser.displayName ?? 'No name',
-            email: googleUser.email,
+            email: email,
           ),
         ),
       );
     }
-
   } catch (e) {
     debugPrint('Google sign-in failed: $e');
-    // Optionally show an error dialog
+    rethrow;
   }
 }
 
@@ -205,7 +228,7 @@ Widget build(BuildContext context) {
                   onPressed: signInWithGoogle,
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.white,
-                    minimumSize: const Size(250, 53), 
+                    minimumSize: const Size(250, 5), 
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),                  ),
                   icon: Image.network(
                     'https://cdn1.iconfinder.com/data/icons/google-s-logo/150/Google_Icons-09-512.png',
@@ -218,7 +241,7 @@ Widget build(BuildContext context) {
                   onPressed: () {},
                     style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.white,
-                    minimumSize: const Size(250, 53), 
+                    minimumSize: const Size(250, 50), 
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                     ),
                     icon: Icon(Icons.facebook, color: Colors.blue[800], size: 30),
