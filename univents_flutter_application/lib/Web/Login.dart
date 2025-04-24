@@ -20,15 +20,23 @@ class _LoginState extends State<Login> {
   final TextEditingController _passwordController = TextEditingController();
   bool _rememberMe = false;
 
-  @override
-  void initState() {
-    super.initState();
-    supabase.auth.onAuthStateChange.listen((data) {
-      setState(() {
-        _userID = data.session?.user.id;
-      });
-    });
+@override
+void initState() {
+  super.initState();
+  // Check if the user is already signed in
+  final session = supabase.auth.currentSession;
+  if (session != null) {
+    _userID = session.user?.id;
   }
+
+  // Listen for changes in authentication state
+  supabase.auth.onAuthStateChange.listen((data) {
+    setState(() {
+      _userID = data.session?.user.id;
+    });
+  });
+}
+
 Future<void> signInWithGoogle() async {
   try {
     const webClientId = '31890867632-1thbar05us92e7ptrouma5ehi9atovh9.apps.googleusercontent.com';
@@ -39,7 +47,7 @@ Future<void> signInWithGoogle() async {
       serverClientId: webClientId,
     );
 
-    await googleSignIn.signOut();
+    await googleSignIn.signOut(); // Ensure user is logged out before logging in again.
 
     final googleUser = await googleSignIn.signIn();
     if (googleUser == null) {
@@ -82,25 +90,31 @@ Future<void> signInWithGoogle() async {
     final userId = authRes.session?.user.id;
     if (userId == null) throw Exception("No user ID returned");
 
-    // Check if profile exists
+    // Check if the profile exists before inserting
     final profileCheck = await supabase
         .from('profiles')
-        .select('role')
+        .select('id, role') // Fetch the profile's id and role
         .eq('id', userId)
         .maybeSingle();
 
-    if (profileCheck == null || profileCheck.isEmpty) {
-      // Insert profile with student role
+    print('Profile Check: $profileCheck');  // Debugging: See what the profile check returns
+
+    if (profileCheck == null) {
+      // Insert profile with student role if profile does not exist
       await supabase.from('profiles').insert({
         'id': userId,
         'email': email,
         'role': 'student',
       });
-    } else if (profileCheck['role'] == null) {
-      // Update role if missing
-      await supabase.from('profiles').update({
-        'role': 'student',
-      }).eq('id', userId);
+    } else {
+      // Profile exists, update it if necessary
+      final role = profileCheck['role'];
+      if (role == null) {
+        // Update role if it's missing
+        await supabase.from('profiles').update({
+          'role': 'student',
+        }).eq('id', userId);
+      }
     }
 
     if (context.mounted) {
@@ -118,7 +132,6 @@ Future<void> signInWithGoogle() async {
     rethrow;
   }
 }
-
 
 @override
 Widget build(BuildContext context) {
@@ -204,7 +217,7 @@ Widget build(BuildContext context) {
                   child: ElevatedButton(
                     onPressed: () {},
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.indigo,
+                      backgroundColor: const Color.fromARGB(255, 45, 59, 135),
                       minimumSize: const Size(double.infinity, 55),
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                     ),
@@ -228,7 +241,7 @@ Widget build(BuildContext context) {
                   onPressed: signInWithGoogle,
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.white,
-                    minimumSize: const Size(250, 5), 
+                    minimumSize: const Size(250, 50), 
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),                  ),
                   icon: Image.network(
                     'https://cdn1.iconfinder.com/data/icons/google-s-logo/150/Google_Icons-09-512.png',
