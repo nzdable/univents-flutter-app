@@ -17,7 +17,8 @@ class Dashboard extends StatelessWidget {
     );
   }
 
-  Widget _drawerItem(IconData icon, String title, {String? trailing, VoidCallback? onTap}) {
+  Widget _drawerItem(IconData icon, String title,
+      {String? trailing, VoidCallback? onTap}) {
     return ListTile(
       leading: Icon(icon),
       title: Text(title),
@@ -53,7 +54,8 @@ class Dashboard extends StatelessWidget {
                   padding: const EdgeInsets.symmetric(horizontal: 16.0),
                   child: Text(
                     name.toUpperCase(),
-                    style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                    style: const TextStyle(
+                        fontSize: 20, fontWeight: FontWeight.bold),
                   ),
                 ),
                 const SizedBox(height: 16),
@@ -64,7 +66,8 @@ class Dashboard extends StatelessWidget {
                 _drawerItem(Icons.contact_mail, 'Contact Us'),
                 _drawerItem(Icons.settings, 'Settings'),
                 _drawerItem(Icons.help_outline, 'Helps & FAQs'),
-                _drawerItem(Icons.logout, 'Sign Out', onTap: () => _signOut(context)),
+                _drawerItem(Icons.logout, 'Sign Out',
+                    onTap: () => _signOut(context)),
               ],
             ),
           ),
@@ -85,15 +88,18 @@ class Dashboard extends StatelessWidget {
                   _buildHeader(context),
                   const SizedBox(height: 16),
                   Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 30.0, vertical: 8),
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 30.0, vertical: 8),
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         const Text(
                           'Upcoming Events',
-                          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                          style: TextStyle(
+                              fontSize: 18, fontWeight: FontWeight.bold),
                         ),
-                        TextButton(onPressed: () {}, child: const Text('See All')),
+                        TextButton(
+                            onPressed: () {}, child: const Text('See All')),
                       ],
                     ),
                   ),
@@ -144,8 +150,13 @@ class Dashboard extends StatelessWidget {
               ),
               Column(
                 children: const [
-                  Text('Current Status', style: TextStyle(color: Colors.white, fontSize: 12)),
-                  Text('Student', style: TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold)),
+                  Text('Current Status',
+                      style: TextStyle(color: Colors.white, fontSize: 12)),
+                  Text('Student',
+                      style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold)),
                 ],
               ),
               IconButton(
@@ -202,6 +213,9 @@ class Dashboard extends StatelessWidget {
               title: event.title,
               location: event.location,
               imageUrl: event.eventbanner,
+              dateTimeStart: event.datetimestart,
+              dateTimeEnd: event.datetimeend,
+              description: event.description,
             ),
           ),
         );
@@ -220,7 +234,8 @@ class Dashboard extends StatelessWidget {
             Stack(
               children: [
                 ClipRRect(
-                  borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
+                  borderRadius:
+                      const BorderRadius.vertical(top: Radius.circular(16)),
                   child: event.eventbanner.isNotEmpty
                       ? Image.network(
                           event.eventbanner,
@@ -232,14 +247,16 @@ class Dashboard extends StatelessWidget {
                           height: 140,
                           width: double.infinity,
                           color: Colors.grey[300],
-                          child: const Icon(Icons.image, size: 40, color: Colors.grey),
+                          child: const Icon(Icons.image,
+                              size: 40, color: Colors.grey),
                         ),
                 ),
                 Positioned(
                   top: 8,
                   left: 8,
                   child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                     decoration: BoxDecoration(
                       color: Colors.white.withOpacity(0.6),
                       borderRadius: BorderRadius.circular(8),
@@ -248,11 +265,13 @@ class Dashboard extends StatelessWidget {
                       children: [
                         Text(
                           '${event.datetimestart.day}',
-                          style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                          style: const TextStyle(
+                              fontSize: 16, fontWeight: FontWeight.bold),
                         ),
                         Text(
                           _monthString(event.datetimestart.month),
-                          style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold),
+                          style: const TextStyle(
+                              fontSize: 10, fontWeight: FontWeight.bold),
                         ),
                       ],
                     ),
@@ -267,12 +286,14 @@ class Dashboard extends StatelessWidget {
                 children: [
                   Text(
                     event.title,
-                    style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                    style: const TextStyle(
+                        fontSize: 16, fontWeight: FontWeight.bold),
                   ),
                   const SizedBox(height: 8),
                   Row(
                     children: [
-                      const Icon(Icons.location_on, size: 16, color: Colors.grey),
+                      const Icon(Icons.location_on,
+                          size: 16, color: Colors.grey),
                       const SizedBox(width: 4),
                       Expanded(
                         child: Text(
@@ -294,8 +315,18 @@ class Dashboard extends StatelessWidget {
 
   String _monthString(int month) {
     const months = [
-      'JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN',
-      'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'
+      'JAN',
+      'FEB',
+      'MAR',
+      'APR',
+      'MAY',
+      'JUN',
+      'JUL',
+      'AUG',
+      'SEP',
+      'OCT',
+      'NOV',
+      'DEC'
     ];
     return months[month - 1];
   }

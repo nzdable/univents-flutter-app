@@ -4,12 +4,18 @@ class EventDetails extends StatelessWidget {
   final String title;
   final String location;
   final String imageUrl;
+  final DateTime dateTimeStart;
+  final DateTime dateTimeEnd;
+  final String description;
 
   const EventDetails({
     super.key,
     required this.title,
     required this.location,
     required this.imageUrl,
+    required this.dateTimeStart,
+    required this.dateTimeEnd,
+    required this.description,
   });
 
   @override
@@ -41,7 +47,8 @@ class EventDetails extends StatelessWidget {
                 child: ElevatedButton(
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.white,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(30)),
                   ),
                   onPressed: () {},
                   child: const Text(
@@ -60,16 +67,20 @@ class EventDetails extends StatelessWidget {
               children: [
                 Text(
                   title,
-                  style: const TextStyle(fontSize: 26, fontWeight: FontWeight.bold),
+                  style: const TextStyle(
+                      fontSize: 26, fontWeight: FontWeight.bold),
                 ),
                 const SizedBox(height: 16),
                 Row(
                   children: [
-                    const Icon(Icons.calendar_today, size: 20, color: Colors.blue),
+                    const Icon(Icons.calendar_today,
+                        size: 20, color: Colors.blue),
                     const SizedBox(width: 8),
-                    const Text(
-                      "14 December, 2025 | 3:00PM - 9:00PM",
-                      style: TextStyle(fontSize: 14),
+                    Text(
+                      '${dateTimeStart.toLocal().toString().substring(0, 10)} | '
+                      '${dateTimeStart.toLocal().toString().substring(11, 16)} - '
+                      '${dateTimeEnd.toLocal().toString().substring(11, 16)}',
+                      style: const TextStyle(fontSize: 14),
                     ),
                   ],
                 ),
@@ -105,7 +116,8 @@ class EventDetails extends StatelessWidget {
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.blue[50],
                         foregroundColor: Colors.blue,
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                        shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(10)),
                       ),
                       onPressed: () {},
                       child: const Text('Follow'),
@@ -118,10 +130,9 @@ class EventDetails extends StatelessWidget {
                   style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                 ),
                 const SizedBox(height: 10),
-                const Text(
-                  "Enjoy your favorite dish and a lovely time with your friends and family. "
-                  "Food from local food trucks will be available for purchase. Read More...",
-                  style: TextStyle(fontSize: 14, color: Colors.grey),
+                Text(
+                  description,
+                  style: const TextStyle(fontSize: 14, color: Colors.grey),
                 ),
               ],
             ),
@@ -135,7 +146,8 @@ class EventDetails extends StatelessWidget {
               child: ElevatedButton.icon(
                 style: ElevatedButton.styleFrom(
                   backgroundColor: const Color(0xFF2D3192),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12)),
                 ),
                 onPressed: () {},
                 icon: const Icon(Icons.arrow_forward, color: Colors.white),
