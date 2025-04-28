@@ -1,0 +1,2 @@
+/Users/andreiagreda/Documents/univents-flutter-app/univents_flutter_application/android/app/.cxx/Debug/5676v244/x86/CMakeFiles/edit_cache.dir
+/Users/andreiagreda/Documents/univents-flutter-app/univents_flutter_application/android/app/.cxx/Debug/5676v244/x86/CMakeFiles/rebuild_cache.dir

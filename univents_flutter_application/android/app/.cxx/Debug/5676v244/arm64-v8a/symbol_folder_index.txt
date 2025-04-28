@@ -1,0 +1,1 @@
+/Users/andreiagreda/Documents/univents-flutter-app/univents_flutter_application/build/app/intermediates/cxx/Debug/5676v244/obj/arm64-v8a
