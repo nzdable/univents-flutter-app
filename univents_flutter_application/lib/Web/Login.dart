@@ -93,24 +93,21 @@ Future<void> signInWithGoogle() async {
     // Check if the profile exists before inserting
     final profileCheck = await supabase
         .from('profiles')
-        .select('id, role') // Fetch the profile's id and role
+        .select('id, role') 
         .eq('id', userId)
         .maybeSingle();
 
-    print('Profile Check: $profileCheck');  // Debugging: See what the profile check returns
+    print('Profile Check: $profileCheck');  
 
     if (profileCheck == null) {
-      // Insert profile with student role if profile does not exist
       await supabase.from('profiles').insert({
         'id': userId,
         'email': email,
         'role': 'student',
       });
     } else {
-      // Profile exists, update it if necessary
       final role = profileCheck['role'];
       if (role == null) {
-        // Update role if it's missing
         await supabase.from('profiles').update({
           'role': 'student',
         }).eq('id', userId);
