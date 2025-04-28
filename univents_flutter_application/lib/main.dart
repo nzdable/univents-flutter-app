@@ -2,8 +2,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'Web/Login.dart';
-import 'dashboard.dart';
-
+import 'package:univents_flutter_application/Web/view_events.dart';
 
 void main(dynamic html) async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -39,8 +38,13 @@ class MainApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const MaterialApp(
-      home: Login(),
+    return MaterialApp(
+      initialRoute: '/',
+      routes: {
+        '/': (context) => const Login(),
+        '/events': (context) => ViewEvents(),
+
+      },
     );
   }
 }
