@@ -290,7 +290,7 @@ class Dashboard extends StatelessWidget {
                         fontSize: 16, fontWeight: FontWeight.bold),
                   ),
                   const SizedBox(height: 8),
-                  Row(
+                  Column(
                     children: [
                       const Icon(Icons.location_on,
                           size: 16, color: Colors.grey),
@@ -302,6 +302,7 @@ class Dashboard extends StatelessWidget {
                           overflow: TextOverflow.ellipsis,
                         ),
                       ),
+                      Text("hatdog")
                     ],
                   ),
                 ],
