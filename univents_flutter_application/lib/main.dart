@@ -2,7 +2,6 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'screens/login_screen.dart';
-import 'package:univents_flutter_application/screens/events_view_screen.dart';
 
 void main(dynamic html) async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -42,7 +41,6 @@ class MainApp extends StatelessWidget {
       initialRoute: '/',
       routes: {
         '/': (context) => const Login(),
-        '/events': (context) => ViewEvents(),
       },
     );
   }
