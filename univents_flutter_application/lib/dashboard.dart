@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:univents_flutter_application/event_list_screen.dart';
 import 'package:univents_flutter_application/lib/mobile/models/event_model.dart';
 import 'package:univents_flutter_application/lib/mobile/controllers/event_controller.dart';
 import 'package:univents_flutter_application/Web/Login.dart';
@@ -99,12 +100,21 @@ class Dashboard extends StatelessWidget {
                               fontSize: 18, fontWeight: FontWeight.bold),
                         ),
                         TextButton(
-                            onPressed: () {}, child: const Text('See All')),
+  onPressed: () {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => EventListScreen(events: provider.events!),
+      ),
+    );
+  },
+  child: const Text('See All'),
+),
                       ],
                     ),
                   ),
                   SizedBox(
-                    height: 300,
+                    height: 250,
                     child: ListView.builder(
                       scrollDirection: Axis.horizontal,
                       itemCount: provider.events!.length,
@@ -280,33 +290,87 @@ class Dashboard extends StatelessWidget {
               ],
             ),
             Padding(
-              padding: const EdgeInsets.all(12.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    event.title,
-                    style: const TextStyle(
-                        fontSize: 16, fontWeight: FontWeight.bold),
-                  ),
-                  const SizedBox(height: 8),
-                  Row(
-                    children: [
-                      const Icon(Icons.location_on,
-                          size: 16, color: Colors.grey),
-                      const SizedBox(width: 4),
-                      Expanded(
-                        child: Text(
-                          event.location,
-                          style: const TextStyle(color: Colors.grey),
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
+  padding: const EdgeInsets.all(12.0),
+  child: Column(
+    crossAxisAlignment: CrossAxisAlignment.start,
+    children: [
+      Text(
+        event.title,
+        style: const TextStyle(
+          fontSize: 16,
+          fontWeight: FontWeight.bold,
+        ),
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,
+      ),
+      const SizedBox(height: 8),
+      Row(
+  children: [
+    SizedBox(
+      width: 50,
+      height: 20,
+      child: Stack(
+        children: const [
+          Positioned(
+            left: 0,
+            child: CircleAvatar(
+              radius: 10,
+              backgroundImage: NetworkImage(
+                'https://randomuser.me/api/portraits/women/1.jpg',
               ),
             ),
+          ),
+          Positioned(
+            left: 15,
+            child: CircleAvatar(
+              radius: 10,
+              backgroundImage: NetworkImage(
+                'https://randomuser.me/api/portraits/men/2.jpg',
+              ),
+            ),
+          ),
+          Positioned(
+            left: 30,
+            child: CircleAvatar(
+              radius: 10,
+              backgroundImage: NetworkImage(
+                'https://randomuser.me/api/portraits/men/3.jpg',
+              ),
+            ),
+          ),
+        ],
+      ),
+    ),
+    const SizedBox(width: 8),
+    const Text(
+      '+20 Going',
+      style: TextStyle(
+        color: Colors.blue,
+        fontWeight: FontWeight.w500,
+        fontSize: 12,
+      ),
+    ),
+  ],
+),
+
+      const SizedBox(height: 8),
+      Row(
+        children: [
+          const Icon(Icons.location_on, size: 16, color: Colors.grey),
+          const SizedBox(width: 4),
+            Expanded(
+            child: Text(
+              event.location,
+              style: const TextStyle(color: Colors.grey, fontSize: 12),
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
+        ],
+      ),
+    ],
+  ),
+),
+
           ],
         ),
       ),

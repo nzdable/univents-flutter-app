@@ -43,7 +43,6 @@ class MainApp extends StatelessWidget {
       routes: {
         '/': (context) => const Login(),
         '/events': (context) => ViewEvents(),
-
       },
     );
   }
