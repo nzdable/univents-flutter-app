@@ -1,5 +1,4 @@
 import 'dart:io' show Platform;
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -15,7 +14,6 @@ class Login extends StatefulWidget {
 final SupabaseClient supabase = Supabase.instance.client;
 
 class _LoginState extends State<Login> {
-  String? _userID;
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
   bool _rememberMe = false;
@@ -26,13 +24,11 @@ class _LoginState extends State<Login> {
     // Check if the user is already signed in
     final session = supabase.auth.currentSession;
     if (session != null) {
-      _userID = session.user?.id;
     }
 
     // Listen for changes in authentication state
     supabase.auth.onAuthStateChange.listen((data) {
       setState(() {
-        _userID = data.session?.user.id;
       });
     });
   }

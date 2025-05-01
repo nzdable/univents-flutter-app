@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:univents_flutter_application/screens/login_screen.dart';
-import 'package:univents_flutter_application/screens/events_details_screen.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:univents_flutter_application/models/event_model.dart';
 
 
 class ViewEvents extends StatefulWidget {
+  const ViewEvents({super.key});
+
 
   @override
   State<ViewEvents> createState() => _ViewEventsState();
