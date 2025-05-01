@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:univents_flutter_application/screens/event_list_screen.dart';
 import 'package:univents_flutter_application/models/event_model.dart';
-import 'package:univents_flutter_application/controllers/event_controller.dart';
+import 'package:univents_flutter_application/providers/data_provider.dart';
 import 'package:univents_flutter_application/screens/login_screen.dart';
 import 'package:univents_flutter_application/screens/events_details_screen.dart';
 
