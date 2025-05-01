@@ -3,7 +3,7 @@ import 'package:univents_flutter_application/models/event_model.dart';
 import 'package:univents_flutter_application/screens/events_details_screen.dart';
 
 class EventListScreen extends StatelessWidget {
-  final List<Event> events;
+  final List<EventsModel> events;
 
   const EventListScreen({super.key, required this.events});
 

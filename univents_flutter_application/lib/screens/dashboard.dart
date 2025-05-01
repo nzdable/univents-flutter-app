@@ -214,7 +214,7 @@ class Dashboard extends StatelessWidget {
     );
   }
 
-  Widget _buildEventCard(BuildContext context, Event event) {
+  Widget _buildEventCard(BuildContext context, EventsModel event) {
     return GestureDetector(
       onTap: () {
         Navigator.push(

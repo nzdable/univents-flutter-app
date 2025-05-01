@@ -3,12 +3,12 @@ import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 class DataProvider extends ChangeNotifier {
-  List<Event>? events;
+  List<EventsModel>? events;
 
 
   Future<void> fetchEvents() async {
     final res = await Supabase.instance.client.from('events').select();
-    events = (res as List).map((m) => Event.fromMap(m)).toList();
+    events = (res as List).map((m) => EventsModel.fromMap(m)).toList();
     notifyListeners();
   }
 }

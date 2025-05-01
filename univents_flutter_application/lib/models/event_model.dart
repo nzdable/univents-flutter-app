@@ -1,5 +1,5 @@
 // models/event.dart
-class Event {
+class EventsModel {
   final String uid;
   final String eventbanner;
   final String orguid;
@@ -12,7 +12,7 @@ class Event {
   final String status;
   final String tags;
 
-  Event({
+  EventsModel({
     required this.uid,
     required this.eventbanner,
     required this.orguid,
@@ -26,7 +26,7 @@ class Event {
     required this.tags,
   });
 
-  factory Event.fromMap(Map<String, dynamic> m) => Event(
+  factory EventsModel.fromMap(Map<String, dynamic> m) => EventsModel(
         uid: m['uid'] as String,
         eventbanner: m['eventbanner'] as String,
         orguid: m['orguid'] as String,
