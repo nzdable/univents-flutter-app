@@ -6,11 +6,43 @@ import 'package:univents_flutter_application/controllers/event_controller.dart';
 import 'package:univents_flutter_application/screens/login_screen.dart';
 import 'package:univents_flutter_application/screens/events_details_screen.dart';
 
-class Dashboard extends StatelessWidget {
+class Dashboard extends StatefulWidget {
   final String name;
   final String email;
 
   const Dashboard({super.key, required this.name, required this.email});
+
+  @override
+  State<Dashboard> createState() => _DashboardState();
+}
+
+class _DashboardState extends State<Dashboard> {
+  final TextEditingController _searchController = TextEditingController();
+  List<EventsModel> _filteredEvents = [];
+  List<EventsModel> _allEvents = [];
+
+  @override
+  void initState() {
+    super.initState();
+    _searchController.addListener(_filterEvents);
+  }
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
+
+  void _filterEvents() {
+    final query = _searchController.text.toLowerCase();
+    setState(() {
+      _filteredEvents = _allEvents
+          .where((event) =>
+              event.title.toLowerCase().contains(query) ||
+              event.location.toLowerCase().contains(query))
+          .toList();
+    });
+  }
 
   void _signOut(BuildContext context) {
     Navigator.of(context).pushReplacement(
@@ -54,7 +86,7 @@ class Dashboard extends StatelessWidget {
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 16.0),
                   child: Text(
-                    name.toUpperCase(),
+                    widget.name.toUpperCase(),
                     style: const TextStyle(
                         fontSize: 20, fontWeight: FontWeight.bold),
                   ),
@@ -79,8 +111,9 @@ class Dashboard extends StatelessWidget {
               return const Center(child: CircularProgressIndicator());
             }
 
-            if (provider.events!.isEmpty) {
-              return const Center(child: Text('No Events Found.'));
+            if (_allEvents.isEmpty) {
+              _allEvents = provider.events!;
+              _filteredEvents = _allEvents;
             }
 
             return SingleChildScrollView(
@@ -118,10 +151,10 @@ class Dashboard extends StatelessWidget {
                     height: 250,
                     child: ListView.builder(
                       scrollDirection: Axis.horizontal,
-                      itemCount: provider.events!.length,
+                      itemCount: _filteredEvents.length,
                       padding: const EdgeInsets.only(left: 30),
                       itemBuilder: (context, index) {
-                        final event = provider.events![index];
+                        final event = _filteredEvents[index];
                         return _buildEventCard(context, event);
                       },
                     ),
@@ -181,6 +214,7 @@ class Dashboard extends StatelessWidget {
             children: [
               Expanded(
                 child: TextField(
+                  controller: _searchController,
                   decoration: InputDecoration(
                     hintText: 'Search...',
                     prefixIcon: const Icon(Icons.search, color: Colors.white),
@@ -227,6 +261,8 @@ class Dashboard extends StatelessWidget {
               dateTimeStart: event.datetimestart,
               dateTimeEnd: event.datetimeend,
               description: event.description,
+              orguid: event.orguid,
+
             ),
           ),
         );

@@ -1,12 +1,14 @@
 import 'package:flutter/material.dart';
+import 'package:univents_flutter_application/models/organization_model.dart';
 
-class EventDetails extends StatelessWidget {
+class EventDetails extends StatefulWidget {
   final String title;
   final String location;
   final String imageUrl;
   final DateTime dateTimeStart;
   final DateTime dateTimeEnd;
   final String description;
+  final String orguid; // Reference to the organization
 
   const EventDetails({
     super.key,
@@ -16,7 +18,74 @@ class EventDetails extends StatelessWidget {
     required this.dateTimeStart,
     required this.dateTimeEnd,
     required this.description,
+    required this.orguid,
   });
+
+  @override
+  _EventDetailsState createState() => _EventDetailsState();
+}
+
+class _EventDetailsState extends State<EventDetails> {
+  String? _organizationName; // To store the fetched organization name
+  bool _isLoading = true; // To show a loading indicator while fetching data
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchOrganizationName();
+  }
+
+  Future<void> _fetchOrganizationName() async {
+    // Simulate fetching organization details from the database
+    final organizations = [
+      Organization(
+        uid: 'org1',
+        banner: 'banner1.jpg',
+        logo: 'logo1.jpg',
+        acronym: 'ORG1',
+        name: 'Organization One',
+        category: 'Education',
+        email: 'org1@example.com',
+        mobile: '1234567890',
+        facebook: 'facebook.com/org1',
+        status: true,
+      ),
+      Organization(
+        uid: 'org2',
+        banner: 'banner2.jpg',
+        logo: 'logo2.jpg',
+        acronym: 'ORG2',
+        name: 'Organization Two',
+        category: 'Health',
+        email: 'org2@example.com',
+        mobile: '0987654321',
+        facebook: 'facebook.com/org2',
+        status: true,
+      ),
+    ];
+
+    // Find the organization by orguid
+    final organization = organizations.firstWhere(
+      (org) => org.uid == widget.orguid,
+      orElse: () => Organization(
+        uid: '',
+        banner: '',
+        logo: '',
+        acronym: '',
+        name: '',
+        category: '',
+        email: '',
+        mobile: '',
+        facebook: '',
+        status: false,
+      ),
+    );
+
+    setState(() {
+      _organizationName = organization.name;
+      _isLoading = false;
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -26,7 +95,7 @@ class EventDetails extends StatelessWidget {
           Stack(
             children: [
               Image.network(
-                imageUrl,
+                widget.imageUrl,
                 height: 250,
                 width: double.infinity,
                 fit: BoxFit.cover,
@@ -66,7 +135,7 @@ class EventDetails extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  title,
+                  widget.title,
                   style: const TextStyle(
                       fontSize: 26, fontWeight: FontWeight.bold),
                 ),
@@ -77,9 +146,9 @@ class EventDetails extends StatelessWidget {
                         size: 20, color: Colors.blue),
                     const SizedBox(width: 8),
                     Text(
-                      '${dateTimeStart.toLocal().toString().substring(0, 10)} | '
-                      '${dateTimeStart.toLocal().toString().substring(11, 16)} - '
-                      '${dateTimeEnd.toLocal().toString().substring(11, 16)}',
+                      '${widget.dateTimeStart.toLocal().toString().substring(0, 10)} | '
+                      '${widget.dateTimeStart.toLocal().toString().substring(11, 16)} - '
+                      '${widget.dateTimeEnd.toLocal().toString().substring(11, 16)}',
                       style: const TextStyle(fontSize: 14),
                     ),
                   ],
@@ -91,7 +160,7 @@ class EventDetails extends StatelessWidget {
                     const SizedBox(width: 8),
                     Expanded(
                       child: Text(
-                        location,
+                        widget.location,
                         style: const TextStyle(fontSize: 14),
                       ),
                     ),
@@ -107,10 +176,12 @@ class EventDetails extends StatelessWidget {
                       ),
                     ),
                     const SizedBox(width: 10),
-                    const Text(
-                      "Ashfak Sayem",
-                      style: TextStyle(fontWeight: FontWeight.bold),
-                    ),
+                    _isLoading
+                        ? const CircularProgressIndicator() // Show loading indicator
+                        : Text(
+                            _organizationName ?? 'Unknown Organization',
+                            style: const TextStyle(fontWeight: FontWeight.bold),
+                          ),
                     const Spacer(),
                     ElevatedButton(
                       style: ElevatedButton.styleFrom(
@@ -131,7 +202,7 @@ class EventDetails extends StatelessWidget {
                 ),
                 const SizedBox(height: 10),
                 Text(
-                  description,
+                  widget.description,
                   style: const TextStyle(fontSize: 14, color: Colors.grey),
                 ),
               ],

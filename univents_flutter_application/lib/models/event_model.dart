@@ -41,6 +41,8 @@ class EventsModel {
         tags: m['tags'] as String? ?? '',
       );
 
+  void get organization => null;
+
   Map<String, dynamic> toMap() => {
         'uid': uid,
         'eventbanner': eventbanner,

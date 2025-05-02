@@ -5,6 +5,8 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 class DataProvider extends ChangeNotifier {
   List<EventsModel>? events;
 
+  get organizations => null;
+
 
   Future<void> fetchEvents() async {
     final res = await Supabase.instance.client.from('events').select();
