@@ -33,6 +33,28 @@ class EventDetailsState extends State<EventDetails> {
   bool _hasJoined = false;
   String? _eventId;
 
+  Future<void> _joinEvent() async {
+    try {
+      final userId = Supabase.instance.client.auth.currentUser?.id;
+      if (userId != null && _eventId != null) {
+        await Supabase.instance.client.from('attendees').insert({
+          'accountid': userId,
+          'eventid': _eventId,
+        });
+        setState(() {
+          _hasJoined = true;
+        });
+        Fluttertoast.showToast(msg: "Successfully joined the event!");
+      } else {
+        Fluttertoast.showToast(
+            msg: "Unable to join the event. Please try again.");
+      }
+    } catch (error) {
+      debugPrint("Error joining event: $error");
+      Fluttertoast.showToast(msg: "Error joining the event.");
+    }
+  }
+
   @override
   void initState() {
     super.initState();
@@ -68,7 +90,7 @@ class EventDetailsState extends State<EventDetails> {
   }
 
   // Fetch the event ID based on organization ID
-  Future<void> _fetchEventId() async {
+  Future<void> _fetchBasicEventId() async {
     try {
       final response = await Supabase.instance.client
           .from('events')
@@ -89,68 +111,42 @@ class EventDetailsState extends State<EventDetails> {
     }
   }
 
-  // Join the event
-  Future<void> _joinEvent() async {
+  // Fetch the event ID based on organization ID and check if the user has joined
+  Future<void> _fetchEventId() async {
     try {
-      debugPrint("Attempting to join event: ${widget.title}");
-      final userId = Supabase.instance.client.auth.currentUser?.id;
-
-      if (userId == null) {
-        debugPrint("User is not logged in.");
-        Fluttertoast.showToast(msg: "You must be logged in to join an event.");
-        return;
-      }
-
-      debugPrint("User ID: $userId");
-
-      // Query to check if the user exists in the 'accounts' table
-      final userResponse = await Supabase.instance.client
-          .from('accounts')
+      final response = await Supabase.instance.client
+          .from('events')
           .select('uid')
-          .eq('uid', userId)
+          .eq('orguid', widget.orguid)
+          .eq('title', widget.title)
           .maybeSingle();
 
-      if (userResponse == null) {
-        debugPrint("User not found in accounts table.");
-        Fluttertoast.showToast(msg: "User not found in accounts table.");
-        return;
+      if (response != null && mounted) {
+        setState(() {
+          _eventId = response['uid'];
+        });
+
+        // Check if the user has already joined the event
+        final userId = Supabase.instance.client.auth.currentUser?.id;
+        if (userId != null) {
+          final existingJoin = await Supabase.instance.client
+              .from('attendees')
+              .select('uid')
+              .eq('accountid', userId)
+              .eq('eventid', _eventId as Object)
+              .maybeSingle();
+
+          if (existingJoin != null && mounted) {
+            setState(() {
+              _hasJoined = true;
+            });
+          }
+        }
+      } else {
+        debugPrint("No event found or multiple events matched.");
       }
-
-      debugPrint("User exists in accounts table.");
-
-      // Ensure the eventId is available
-      if (_eventId == null) {
-        Fluttertoast.showToast(msg: "Event ID is missing.");
-        return;
-      }
-
-      final timestamp = DateTime.now().toIso8601String();
-
-      // Insert the user joining the event into 'attendees' table
-      final insertResponse =
-          await Supabase.instance.client.from('attendees').insert({
-        'accountid': userId, // Foreign key referencing accounts.uid
-        'eventid': _eventId, // Foreign key referencing events.uid
-        'datetimestamp': timestamp,
-      }).select();
-
-      if (insertResponse.error != null) {
-        debugPrint(
-            "Error inserting attendee: ${insertResponse.error!.message}");
-        Fluttertoast.showToast(
-            msg: "Failed to join the event. Please try again.");
-        return;
-      }
-
-      debugPrint("Event joined successfully!");
-
-      setState(() {
-        _hasJoined = true;
-      });
-      Fluttertoast.showToast(msg: "You have successfully joined the event!");
     } catch (error) {
-      debugPrint("Exception while joining event: $error");
-      Fluttertoast.showToast(msg: "An error occurred. Please try again.");
+      debugPrint("Error fetching event ID: $error");
     }
   }
 
@@ -255,14 +251,22 @@ class EventDetailsState extends State<EventDetails> {
               child: ElevatedButton.icon(
                 style: ElevatedButton.styleFrom(
                   backgroundColor:
-                      _hasJoined ? Colors.grey : const Color(0xFF2D3192),
+                      _hasJoined ? Colors.green : const Color(0xFF2D3192),
                   shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12)),
                 ),
-                onPressed: _hasJoined ? null : _joinEvent,
-                icon: const Icon(Icons.check, color: Colors.white),
+                onPressed: _hasJoined
+                    ? () {
+                        Fluttertoast.showToast(
+                            msg: "You have already joined this event.");
+                      }
+                    : _joinEvent,
+                icon: Icon(
+                  _hasJoined ? Icons.check_circle : Icons.check,
+                  color: Colors.white,
+                ),
                 label: Text(
-                  _hasJoined ? "Joined" : "Join Event",
+                  _hasJoined ? "Already Joined" : "Join Event",
                   style: const TextStyle(fontSize: 16, color: Colors.white),
                 ),
               ),
@@ -272,8 +276,4 @@ class EventDetailsState extends State<EventDetails> {
       ),
     );
   }
-}
-
-extension on PostgrestList {
-  get error => null;
 }
