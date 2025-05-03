@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-import 'package:univents_flutter_application/models/organization_model.dart';
 
 class EventDetails extends StatefulWidget {
   final String title;
@@ -23,13 +22,13 @@ class EventDetails extends StatefulWidget {
   });
 
   @override
-  _EventDetailsState createState() => _EventDetailsState();
+  EventDetailsState createState() => EventDetailsState();
 }
 
-class _EventDetailsState extends State<EventDetails> {
-  String? _organizationName; // To store the fetched organization name
-  bool _isLoading = true; // To show a loading indicator while fetching data
+class EventDetailsState extends State<EventDetails> {
+  String? _organizationName;
   String? _organizationBanner;
+  bool _isLoading = true;
 
   @override
   void initState() {
@@ -39,22 +38,21 @@ class _EventDetailsState extends State<EventDetails> {
 
   Future<void> _fetchOrganizationName() async {
     try {
-      // Query the organizations table using the orguid
       final organization = await Supabase.instance.client
           .from('organizations')
-          .select('acronym, name,banner') // Fetch only the acronym and name
+          .select('acronym, name,banner') 
           .eq('uid',
-              widget.orguid) // Match the orguid with the organization's uid
-          .single(); // Fetch a single record
+              widget.orguid) 
+          .single(); 
 
       setState(() {
-        _organizationName = organization['name']; // Store the organization name
+        _organizationName = organization['name']; 
         _organizationBanner = organization['banner'];
         _isLoading = false;
       });
     } catch (error) {
       setState(() {
-        _organizationName = 'Unknown Organization'; // Fallback if not found
+        _organizationName = 'Unknown Organization'; 
         _isLoading = false;
       });
     }
