@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 
 class EventDetails extends StatefulWidget {
   final String title;
@@ -8,7 +9,7 @@ class EventDetails extends StatefulWidget {
   final DateTime dateTimeStart;
   final DateTime dateTimeEnd;
   final String description;
-  final String orguid; // Reference to the organization
+  final String orguid; // Organization ID
 
   const EventDetails({
     super.key,
@@ -29,32 +30,127 @@ class EventDetailsState extends State<EventDetails> {
   String? _organizationName;
   String? _organizationBanner;
   bool _isLoading = true;
+  bool _hasJoined = false;
+  String? _eventId;
 
   @override
   void initState() {
     super.initState();
     _fetchOrganizationName();
+    _fetchEventId();
   }
 
+  // Fetch the organization's name and banner
   Future<void> _fetchOrganizationName() async {
     try {
       final organization = await Supabase.instance.client
           .from('organizations')
-          .select('acronym, name,banner') 
-          .eq('uid',
-              widget.orguid) 
-          .single(); 
+          .select('name, banner')
+          .eq('uid', widget.orguid)
+          .single();
+
+      if (mounted) {
+        setState(() {
+          _organizationName = organization['name'];
+          _organizationBanner = organization['banner'];
+          _isLoading = false;
+        });
+      }
+    } catch (error) {
+      debugPrint("Error fetching organization: $error");
+      if (mounted) {
+        setState(() {
+          _organizationName = 'Unknown Organization';
+          _isLoading = false;
+        });
+      }
+    }
+  }
+
+  // Fetch the event ID based on organization ID
+  Future<void> _fetchEventId() async {
+    try {
+      final response = await Supabase.instance.client
+          .from('events')
+          .select('uid')
+          .eq('orguid', widget.orguid)
+          .eq('title', widget.title)
+          .maybeSingle();
+
+      if (response != null && mounted) {
+        setState(() {
+          _eventId = response['uid'];
+        });
+      } else {
+        debugPrint("No event found or multiple events matched.");
+      }
+    } catch (error) {
+      debugPrint("Error fetching event ID: $error");
+    }
+  }
+
+  // Join the event
+  Future<void> _joinEvent() async {
+    try {
+      debugPrint("Attempting to join event: ${widget.title}");
+      final userId = Supabase.instance.client.auth.currentUser?.id;
+
+      if (userId == null) {
+        debugPrint("User is not logged in.");
+        Fluttertoast.showToast(msg: "You must be logged in to join an event.");
+        return;
+      }
+
+      debugPrint("User ID: $userId");
+
+      // Query to check if the user exists in the 'accounts' table
+      final userResponse = await Supabase.instance.client
+          .from('accounts')
+          .select('uid')
+          .eq('uid', userId)
+          .maybeSingle();
+
+      if (userResponse == null) {
+        debugPrint("User not found in accounts table.");
+        Fluttertoast.showToast(msg: "User not found in accounts table.");
+        return;
+      }
+
+      debugPrint("User exists in accounts table.");
+
+      // Ensure the eventId is available
+      if (_eventId == null) {
+        Fluttertoast.showToast(msg: "Event ID is missing.");
+        return;
+      }
+
+      final timestamp = DateTime.now().toIso8601String();
+
+      // Insert the user joining the event into 'attendees' table
+      final insertResponse =
+          await Supabase.instance.client.from('attendees').insert({
+        'accountid': userId, // Foreign key referencing accounts.uid
+        'eventid': _eventId, // Foreign key referencing events.uid
+        'datetimestamp': timestamp,
+      }).select();
+
+      if (insertResponse.error != null) {
+        debugPrint(
+            "Error inserting attendee: ${insertResponse.error!.message}");
+        Fluttertoast.showToast(
+            msg: "Failed to join the event. Please try again.");
+        return;
+      }
+
+      debugPrint("Event joined successfully!");
 
       setState(() {
-        _organizationName = organization['name']; 
-        _organizationBanner = organization['banner'];
-        _isLoading = false;
+        _hasJoined = true;
       });
+      Fluttertoast.showToast(msg: "You have successfully joined the event!");
     } catch (error) {
-      setState(() {
-        _organizationName = 'Unknown Organization'; 
-        _isLoading = false;
-      });
+      debugPrint("Exception while joining event: $error");
+      Fluttertoast.showToast(msg: "An error occurred. Please try again.");
     }
   }
 
@@ -76,25 +172,7 @@ class EventDetailsState extends State<EventDetails> {
                 left: 16,
                 child: IconButton(
                   icon: const Icon(Icons.arrow_back, color: Colors.white),
-                  onPressed: () {
-                    Navigator.pop(context);
-                  },
-                ),
-              ),
-              Positioned(
-                bottom: 10,
-                right: 16,
-                child: ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.white,
-                    shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(30)),
-                  ),
-                  onPressed: () {},
-                  child: const Text(
-                    'Invite',
-                    style: TextStyle(color: Colors.blue),
-                  ),
+                  onPressed: () => Navigator.pop(context),
                 ),
               ),
             ],
@@ -105,11 +183,9 @@ class EventDetailsState extends State<EventDetails> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  widget.title,
-                  style: const TextStyle(
-                      fontSize: 26, fontWeight: FontWeight.bold),
-                ),
+                Text(widget.title,
+                    style: const TextStyle(
+                        fontSize: 26, fontWeight: FontWeight.bold)),
                 const SizedBox(height: 16),
                 Row(
                   children: [
@@ -138,53 +214,35 @@ class EventDetailsState extends State<EventDetails> {
                   ],
                 ),
                 const SizedBox(height: 12),
-                // ORGANIZATION BANNER
                 Row(
                   children: [
                     CircleAvatar(
                       radius: 20,
                       backgroundImage: _organizationBanner != null
                           ? NetworkImage(_organizationBanner!)
-                          : const AssetImage('assets/default_banner.png')
-                              as ImageProvider,
+                          : null,
                     ),
                     const SizedBox(width: 5),
                     _isLoading
-                        ? const CircularProgressIndicator() // Show loading indicator
+                        ? const CircularProgressIndicator()
                         : Flexible(
                             child: Text(
                               _organizationName ?? 'Unknown Organization',
                               style:
                                   const TextStyle(fontWeight: FontWeight.bold),
-                              overflow: TextOverflow
-                                  .ellipsis, // Truncate text if too long
-                              maxLines: 3, // Limit to one line
+                              overflow: TextOverflow.ellipsis,
+                              maxLines: 3,
                             ),
                           ),
-                    const Spacer(),
-                    ElevatedButton(
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.blue[50],
-                        foregroundColor: Colors.blue,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                      ),
-                      onPressed: () {},
-                      child: const Text('Follow'),
-                    ),
                   ],
                 ),
                 const SizedBox(height: 20),
-                const Text(
-                  "About Event",
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                ),
+                const Text("About Event",
+                    style:
+                        TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
                 const SizedBox(height: 10),
-                Text(
-                  widget.description,
-                  style: const TextStyle(fontSize: 14, color: Colors.grey),
-                ),
+                Text(widget.description,
+                    style: const TextStyle(fontSize: 14, color: Colors.grey)),
               ],
             ),
           ),
@@ -196,15 +254,16 @@ class EventDetailsState extends State<EventDetails> {
               height: 50,
               child: ElevatedButton.icon(
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF2D3192),
+                  backgroundColor:
+                      _hasJoined ? Colors.grey : const Color(0xFF2D3192),
                   shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12)),
                 ),
-                onPressed: () {},
-                icon: const Icon(Icons.arrow_forward, color: Colors.white),
-                label: const Text(
-                  "JOIN EVENT",
-                  style: TextStyle(fontSize: 16, color: Colors.white),
+                onPressed: _hasJoined ? null : _joinEvent,
+                icon: const Icon(Icons.check, color: Colors.white),
+                label: Text(
+                  _hasJoined ? "Joined" : "Join Event",
+                  style: const TextStyle(fontSize: 16, color: Colors.white),
                 ),
               ),
             ),
@@ -213,4 +272,8 @@ class EventDetailsState extends State<EventDetails> {
       ),
     );
   }
+}
+
+extension on PostgrestList {
+  get error => null;
 }
