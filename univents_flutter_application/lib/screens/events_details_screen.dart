@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:univents_flutter_application/models/organization_model.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 class EventDetails extends StatefulWidget {
   final String title;
@@ -22,12 +22,13 @@ class EventDetails extends StatefulWidget {
   });
 
   @override
-  _EventDetailsState createState() => _EventDetailsState();
+  EventDetailsState createState() => EventDetailsState();
 }
 
-class _EventDetailsState extends State<EventDetails> {
-  String? _organizationName; // To store the fetched organization name
-  bool _isLoading = true; // To show a loading indicator while fetching data
+class EventDetailsState extends State<EventDetails> {
+  String? _organizationName;
+  String? _organizationBanner;
+  bool _isLoading = true;
 
   @override
   void initState() {
@@ -36,55 +37,25 @@ class _EventDetailsState extends State<EventDetails> {
   }
 
   Future<void> _fetchOrganizationName() async {
-    // Simulate fetching organization details from the database
-    final organizations = [
-      Organization(
-        uid: 'org1',
-        banner: 'banner1.jpg',
-        logo: 'logo1.jpg',
-        acronym: 'ORG1',
-        name: 'Organization One',
-        category: 'Education',
-        email: 'org1@example.com',
-        mobile: '1234567890',
-        facebook: 'facebook.com/org1',
-        status: true,
-      ),
-      Organization(
-        uid: 'org2',
-        banner: 'banner2.jpg',
-        logo: 'logo2.jpg',
-        acronym: 'ORG2',
-        name: 'Organization Two',
-        category: 'Health',
-        email: 'org2@example.com',
-        mobile: '0987654321',
-        facebook: 'facebook.com/org2',
-        status: true,
-      ),
-    ];
+    try {
+      final organization = await Supabase.instance.client
+          .from('organizations')
+          .select('acronym, name,banner') 
+          .eq('uid',
+              widget.orguid) 
+          .single(); 
 
-    // Find the organization by orguid
-    final organization = organizations.firstWhere(
-      (org) => org.uid == widget.orguid,
-      orElse: () => Organization(
-        uid: '',
-        banner: '',
-        logo: '',
-        acronym: '',
-        name: '',
-        category: '',
-        email: '',
-        mobile: '',
-        facebook: '',
-        status: false,
-      ),
-    );
-
-    setState(() {
-      _organizationName = organization.name;
-      _isLoading = false;
-    });
+      setState(() {
+        _organizationName = organization['name']; 
+        _organizationBanner = organization['banner'];
+        _isLoading = false;
+      });
+    } catch (error) {
+      setState(() {
+        _organizationName = 'Unknown Organization'; 
+        _isLoading = false;
+      });
+    }
   }
 
   @override
@@ -167,20 +138,28 @@ class _EventDetailsState extends State<EventDetails> {
                   ],
                 ),
                 const SizedBox(height: 12),
+                // ORGANIZATION BANNER
                 Row(
                   children: [
                     CircleAvatar(
                       radius: 20,
-                      backgroundImage: NetworkImage(
-                        'https://randomuser.me/api/portraits/men/32.jpg',
-                      ),
+                      backgroundImage: _organizationBanner != null
+                          ? NetworkImage(_organizationBanner!)
+                          : const AssetImage('assets/default_banner.png')
+                              as ImageProvider,
                     ),
-                    const SizedBox(width: 10),
+                    const SizedBox(width: 5),
                     _isLoading
                         ? const CircularProgressIndicator() // Show loading indicator
-                        : Text(
-                            _organizationName ?? 'Unknown Organization',
-                            style: const TextStyle(fontWeight: FontWeight.bold),
+                        : Flexible(
+                            child: Text(
+                              _organizationName ?? 'Unknown Organization',
+                              style:
+                                  const TextStyle(fontWeight: FontWeight.bold),
+                              overflow: TextOverflow
+                                  .ellipsis, // Truncate text if too long
+                              maxLines: 3, // Limit to one line
+                            ),
                           ),
                     const Spacer(),
                     ElevatedButton(
@@ -188,7 +167,8 @@ class _EventDetailsState extends State<EventDetails> {
                         backgroundColor: Colors.blue[50],
                         foregroundColor: Colors.blue,
                         shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(10)),
+                          borderRadius: BorderRadius.circular(10),
+                        ),
                       ),
                       onPressed: () {},
                       child: const Text('Follow'),
