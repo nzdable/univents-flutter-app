@@ -72,7 +72,7 @@ class _EventDetailsState extends State<EventDetails> {
         banner: '',
         logo: '',
         acronym: '',
-        name: '',
+        name: 'Unknown Organization',
         category: '',
         email: '',
         mobile: '',
